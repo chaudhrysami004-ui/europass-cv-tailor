@@ -330,14 +330,13 @@ Output strictly structured markdown without preamble or code fencing:
 - English (Fluent / C1-C2)
 - Lithuanian (Basic / Learning)
 """
-    # Auto-healing fallback list prioritizing high-availability models
+    # Active endpoints avoiding deprecated models
     models_to_try = [
-        custom_model_name.strip() if custom_model_name else "gemini-2.5-flash",
+        custom_model_name.strip() if custom_model_name else "gemini-3.8-flash",
+        "gemini-3.8-flash",
         "gemini-2.5-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-flash"
+        "gemini-2.5-pro",
+        "gemini-1.5-flash"
     ]
     candidate_models = list(dict.fromkeys([m for m in models_to_try if m]))
 
@@ -447,7 +446,7 @@ col1, col2 = st.columns([1.1, 1.9], gap="large")
 with col1:
     st.markdown("### ⚙️ Pipeline Configuration")
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
-    model_choice = st.text_input("Model Engine ID", value="gemini-2.5-flash")
+    model_choice = st.text_input("Model Engine ID", value="gemini-3.8-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
     
     st.markdown("""
