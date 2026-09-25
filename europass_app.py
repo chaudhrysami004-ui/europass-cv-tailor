@@ -107,22 +107,20 @@ st.markdown("""
         box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
     }
 
-    /* ALL LABELS FORCED TO BRIGHT LIGHT COLOR */
-    label, .stTextInput label, .stTextArea label, .stSelectbox label, p, span, h1, h2, h3 {
+    /* High Visibility Labels and Texts */
+    label, .stTextInput label, .stTextArea label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3 {
         color: #FFFFFF !important;
         font-weight: 700 !important;
-        font-size: 1rem !important;
+        font-size: 0.98rem !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
 
-    /* Subheadings High Contrast */
     h3 {
         color: #F8FAFC !important;
         font-weight: 800 !important;
         letter-spacing: -0.01em;
     }
 
-    /* HIGH-CONTRAST INPUT BOXES */
     .stTextInput input, .stTextArea textarea {
         background-color: #0F172A !important;
         color: #FFFFFF !important;
@@ -140,7 +138,6 @@ st.markdown("""
         background-color: #0B1120 !important;
     }
 
-    /* BRIGHT PLACEHOLDERS */
     ::placeholder {
         color: #94A3B8 !important;
         opacity: 1 !important;
@@ -148,7 +145,6 @@ st.markdown("""
         font-size: 0.92rem !important;
     }
 
-    /* Selectbox dropdown fix */
     div[data-baseweb="select"] {
         background-color: #0F172A !important;
         border: 1.5px solid #475569 !important;
@@ -160,7 +156,6 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Context Panel Card */
     .context-panel {
         background: rgba(15, 23, 42, 0.85);
         border: 1px solid rgba(147, 197, 253, 0.25);
@@ -184,7 +179,6 @@ st.markdown("""
         line-height: 1.7;
     }
 
-    /* Glowing Compile Button */
     .stButton > button {
         background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #38BDF8 100%) !important;
         color: #FFFFFF !important;
@@ -205,7 +199,6 @@ st.markdown("""
         box-shadow: 0 10px 32px rgba(56, 189, 248, 0.8) !important;
     }
 
-    /* Download File Button */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
         color: #FFFFFF !important;
@@ -287,11 +280,42 @@ KEY STRENGTHS:
 """
 }
 
-def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name):
+# 10 Major EU & Target Languages
+LANGUAGES_AVAILABLE = [
+    "English (Default)",
+    "Lithuanian (Lietuvių k.)",
+    "German (Deutsch)",
+    "Polish (Polski)",
+    "French (Français)",
+    "Dutch (Nederlands)",
+    "Latvian (Latviešu)",
+    "Estonian (Eesti)",
+    "Spanish (Español)",
+    "Italian (Italiano)"
+]
+
+def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name, target_lang, trans_scope):
     client = genai.Client(api_key=api_key)
-    
+
+    lang_instructions = f"""
+LANGUAGE & LOCALIZATION REQUIREMENTS:
+- Target Output Language: {target_lang}
+- Translation Scope: {trans_scope}
+"""
+    if trans_scope == "Entire CV":
+        lang_instructions += f"""
+- Translate all section headers, summaries, experience bullet points, skills, and dates into {target_lang}.
+- Keep company names (AIO, Cretesol Technologies, United Sol), university names, and global software brand names in standard form.
+"""
+    else:  # Summary & Experience Bullets Only
+        lang_instructions += f"""
+- Keep section headers (PROFESSIONAL SUMMARY, WORK EXPERIENCE, EDUCATION, CORE SKILLS, TOOLS, LANGUAGES) and Job Titles in standard English.
+- Translate only the descriptive narrative sentences inside PROFESSIONAL SUMMARY and WORK EXPERIENCE bullet points into {target_lang}.
+- Keep technical tools, methodologies, metrics, and numbers unchanged.
+"""
+
     prompt = f"""
-You are an expert European ATS Resume Writer and Recruiter specializing in the Baltic/Lithuanian tech and job market.
+You are an expert European ATS Resume Writer and Recruiter specializing in the Baltic and EU tech markets.
 Your task is to tailor a clean, ATS-compliant, single-column Europass CV for candidate Shafay Munir based strictly on his master background and the target Job Description.
 
 MASTER DATA:
@@ -300,12 +324,13 @@ MASTER DATA:
 TARGET JOB DESCRIPTION:
 {job_desc}
 
+{lang_instructions}
+
 RULES & GUIDELINES:
-1. Tone & Culture: Factual, professional, metric-driven (for tech roles) or reliability-focused (for operations/odd jobs). No fluff or generic buzzwords.
-2. ATS Match: Extract critical keywords from the Job Description and seamlessly integrate them into the candidate's achievements and skills.
+1. Tone & Culture: Factual, professional, metric-driven (for tech roles) or reliability-focused (for operations/services). No fluff.
+2. ATS Match: Extract critical keywords from the Job Description and seamlessly integrate them into achievements and skills.
 3. Truthfulness: Do not invent fake companies or fake degrees. Use the numbers and milestones provided (e.g. 50+ clients, 1.02M impressions, $17M Series A, 8-module spec).
-4. For "General Services / Operations": Keep descriptions simple, highlighting stamina, shift flexibility, teamwork, and dependability. Avoid overqualified jargon.
-5. FORMAT:
+4. FORMAT:
 Output strictly structured markdown without preamble or code fencing:
 
 # SHAFAY MUNIR
@@ -330,7 +355,7 @@ Output strictly structured markdown without preamble or code fencing:
 - English (Fluent / C1-C2)
 - Lithuanian (Basic / Learning)
 """
-    # 1. API key ke accessible models live detect karein
+    # 1. API key ke live models dynamically fetch karein
     live_supported = []
     try:
         for m in client.models.list():
@@ -341,7 +366,7 @@ Output strictly structured markdown without preamble or code fencing:
     except Exception:
         pass
 
-    # 2. Recommended priority order banayein
+    # 2. Recommended priority order
     priority = [
         custom_model_name.strip() if custom_model_name else "",
         "gemini-2.5-flash",
@@ -351,7 +376,7 @@ Output strictly structured markdown without preamble or code fencing:
     ]
     priority.extend(live_supported)
 
-    # 3. Known deprecated / 404 models block karein
+    # 3. Known deprecated models filter out karein
     blocked = {"gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"}
     candidate_models = [m for m in dict.fromkeys(priority) if m and m not in blocked]
 
@@ -451,8 +476,8 @@ def create_europass_docx(markdown_content):
 st.markdown("""
 <div class="hero-header">
     <div class="hero-title">⚡ Shafay Munir — Autonomous ATS Tailor</div>
-    <div class="hero-desc">Real-time reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
-    <div class="status-chip">● ENGINE ACTIVE: DYNAMIC MODEL RESOLUTION & ATS AUTO-HEALING</div>
+    <div class="hero-desc">Multi-lingual reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
+    <div class="status-chip">● ENGINE ACTIVE: MULTI-LANGUAGE ATS LOCALIZER & AUTO-HEALING</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -463,6 +488,16 @@ with col1:
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
     model_choice = st.text_input("Model Engine ID", value="gemini-2.5-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
+    
+    st.markdown("---")
+    st.markdown("### 🌐 Language & Localization")
+    target_language = st.selectbox("Target Output Language", LANGUAGES_AVAILABLE, index=0)
+    translation_scope = st.radio(
+        "Translation Scope",
+        ["Entire CV", "Summary & Experience Bullets Only"],
+        index=0,
+        help="'Entire CV' translates headers and titles; 'Summary & Experience' preserves English technical terms and headers."
+    )
     
     st.markdown("""
     <div class="context-panel">
@@ -491,23 +526,32 @@ if generate_trigger:
     elif not job_desc.strip():
         st.error("Job description paste karna zaroori hai.")
     else:
-        with st.status("⚡ Initializing Autonomous ATS Pipeline...", expanded=True) as status:
+        with st.status(f"⚡ Localizing & Compiling CV ({target_language})...", expanded=True) as status:
             st.write("🔍 Parsing Job Description intent and high-frequency ATS tokens...")
             time.sleep(0.3)
             st.write(f"🧠 Synthesizing Master Background for track: **{target_track}**...")
+            st.write(f"🌍 Applying language localization: **{target_language}** ({translation_scope})...")
             try:
-                cv_markdown = generate_tailored_cv(target_track, job_desc, api_key, model_choice)
+                cv_markdown = generate_tailored_cv(
+                    target_track, 
+                    job_desc, 
+                    api_key, 
+                    model_choice, 
+                    target_language, 
+                    translation_scope
+                )
                 st.write("📄 Structuring Europass Word XML document...")
                 docx_file = create_europass_docx(cv_markdown)
                 status.update(label="✅ Compilation Complete!", state="complete", expanded=False)
                 
                 clean_name = target_track.split()[0]
+                lang_code = target_language.split()[0][:3].upper()
                 
                 st.success("✔ Document compiled successfully!")
                 st.download_button(
-                    label=f"📥 Download Tailored CV ({clean_name}.docx)",
+                    label=f"📥 Download Tailored CV ({clean_name}_{lang_code}.docx)",
                     data=docx_file,
-                    file_name=f"Shafay_Munir_CV_{clean_name}.docx",
+                    file_name=f"Shafay_Munir_CV_{clean_name}_{lang_code}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
