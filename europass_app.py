@@ -15,7 +15,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Animated Ambient Cyber Mesh Background & Glassmorphic Elements
+# Ultra High-Visibility Light-Text Theme with Ambient Motion
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -24,12 +24,11 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* Animated Multi-Gradient Mesh Canvas */
+    /* Ambient Animated Mesh Background */
     .stApp {
-        background: linear-gradient(-45deg, #070B14, #0F172A, #1E1B4B, #090D16, #0c192c) !important;
-        background-size: 400% 400% !important;
-        animation: cyberFlow 16s ease infinite !important;
-        color: #F8FAFC !important;
+        background: linear-gradient(-45deg, #070B14, #0F172A, #172554, #0A0F1D) !important;
+        background-size: 300% 300% !important;
+        animation: cyberFlow 18s ease infinite !important;
     }
 
     @keyframes cyberFlow {
@@ -38,28 +37,28 @@ st.markdown("""
         100% { background-position: 0% 50%; }
     }
 
-    /* Ambient Subtle Tech Grid Overlay */
+    /* Subtle Grid Pattern Overlay */
     .stApp::before {
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100vw; height: 100vh;
-        background-image: linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+        background-image: linear-gradient(rgba(147, 197, 253, 0.05) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(147, 197, 253, 0.05) 1px, transparent 1px);
         background-size: 32px 32px;
         pointer-events: none;
         z-index: 0;
     }
 
-    /* Hero Header Container with Shimmer Border */
+    /* Hero Header */
     .hero-header {
         position: relative;
-        padding: 2rem 2.4rem;
-        background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 18px;
-        backdrop-filter: blur(20px);
+        padding: 1.8rem 2.2rem;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        backdrop-filter: blur(16px);
         margin-bottom: 2rem;
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
         overflow: hidden;
     }
 
@@ -67,11 +66,11 @@ st.markdown("""
         content: '';
         position: absolute;
         top: 0; left: -100%; width: 100%; height: 3px;
-        background: linear-gradient(90deg, transparent, #818CF8, #EC4899, #38BDF8, transparent);
-        animation: scanline 4s linear infinite;
+        background: linear-gradient(90deg, transparent, #818CF8, #38BDF8, transparent);
+        animation: sweep 3.5s linear infinite;
     }
 
-    @keyframes scanline {
+    @keyframes sweep {
         0% { left: -100%; }
         100% { left: 100%; }
     }
@@ -82,71 +81,77 @@ st.markdown("""
         color: #FFFFFF !important;
         margin: 0;
         letter-spacing: -0.02em;
-        text-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        text-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
     }
 
     .hero-desc {
-        color: #94A3B8 !important;
-        font-size: 0.96rem;
+        color: #E2E8F0 !important;
+        font-size: 0.98rem;
         margin-top: 0.4rem;
+        font-weight: 500;
     }
 
     .status-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.3rem 0.85rem;
-        background: rgba(99, 102, 241, 0.2);
-        border: 1px solid rgba(99, 102, 241, 0.5);
+        padding: 0.35rem 0.9rem;
+        background: rgba(99, 102, 241, 0.25);
+        border: 1px solid #818CF8;
         border-radius: 9999px;
-        color: #C7D2FE !important;
-        font-size: 0.75rem;
+        color: #E0E7FF !important;
+        font-size: 0.78rem;
         font-family: 'JetBrains Mono', monospace;
-        font-weight: 600;
+        font-weight: 700;
         margin-top: 0.8rem;
-        box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
     }
 
-    /* Form Card Container */
-    .glass-panel {
-        background: rgba(15, 23, 42, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.5rem;
-        backdrop-filter: blur(14px);
-        margin-bottom: 1.5rem;
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    /* ALL LABELS FORCED TO BRIGHT LIGHT COLOR */
+    label, .stTextInput label, .stTextArea label, .stSelectbox label, p, span, h1, h2, h3 {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
 
-    /* High Visibility Input Overrides */
+    /* Subheadings High Contrast */
+    h3 {
+        color: #F8FAFC !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.01em;
+    }
+
+    /* HIGH-CONTRAST INPUT BOXES */
     .stTextInput input, .stTextArea textarea {
-        background-color: #1E293B !important;
+        background-color: #0F172A !important;
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
-        border: 1.5px solid #334155 !important;
+        border: 1.5px solid #475569 !important;
         border-radius: 10px !important;
         font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.92rem !important;
-        transition: all 0.25s ease !important;
+        font-size: 0.95rem !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     }
 
     .stTextInput input:focus, .stTextArea textarea:focus {
-        border-color: #818CF8 !important;
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4) !important;
-        background-color: #0F172A !important;
+        border-color: #38BDF8 !important;
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.5) !important;
+        background-color: #0B1120 !important;
     }
 
-    /* Fix Placeholder Colors */
+    /* BRIGHT PLACEHOLDERS */
     ::placeholder {
         color: #94A3B8 !important;
-        opacity: 0.85 !important;
+        opacity: 1 !important;
         -webkit-text-fill-color: #94A3B8 !important;
+        font-size: 0.92rem !important;
     }
 
-    /* Selectbox Dropdown */
+    /* Selectbox dropdown fix */
     div[data-baseweb="select"] {
-        background-color: #1E293B !important;
-        border: 1.5px solid #334155 !important;
+        background-color: #0F172A !important;
+        border: 1.5px solid #475569 !important;
         border-radius: 10px !important;
     }
 
@@ -155,56 +160,66 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Neon Primary Action Button */
+    /* Context Panel Card */
+    .context-panel {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(147, 197, 253, 0.25);
+        border-radius: 12px;
+        padding: 1.2rem;
+        margin-top: 1.4rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .context-panel-title {
+        color: #38BDF8 !important;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+
+    .context-panel-body {
+        font-size: 0.9rem;
+        color: #E2E8F0 !important;
+        line-height: 1.7;
+    }
+
+    /* Glowing Compile Button */
     .stButton > button {
-        background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #7C3AED 100%) !important;
+        background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #38BDF8 100%) !important;
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         font-size: 1.05rem !important;
-        padding: 0.85rem 1.6rem !important;
+        padding: 0.9rem 1.8rem !important;
         border-radius: 12px !important;
         border: none !important;
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5) !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 6px 24px rgba(99, 102, 241, 0.6) !important;
+        transition: all 0.25s ease !important;
         width: 100% !important;
-        margin-top: 1rem !important;
+        margin-top: 1.2rem !important;
     }
 
     .stButton > button:hover {
         transform: translateY(-2px) scale(1.01) !important;
-        box-shadow: 0 10px 28px rgba(99, 102, 241, 0.75) !important;
-        background: linear-gradient(135deg, #6366F1 0%, #818CF8 50%, #6366F1 100%) !important;
+        box-shadow: 0 10px 32px rgba(56, 189, 248, 0.8) !important;
     }
 
-    /* Download Success Button */
+    /* Download File Button */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         border-radius: 12px !important;
         border: none !important;
-        padding: 0.85rem 1.6rem !important;
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45) !important;
-    }
-
-    .stDownloadButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.65) !important;
-    }
-
-    .context-panel {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 1.1rem;
-        margin-top: 1.2rem;
+        padding: 0.9rem 1.6rem !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Master Data Profiles
+# Master Profiles
 PROFILES = {
     "AI SEO & GEO Specialist": """
 CANDIDATE: Shafay Munir
@@ -416,7 +431,7 @@ def create_europass_docx(markdown_content):
     bio.seek(0)
     return bio
 
-# Hero Banner with Moving Cyber Shimmer
+# Hero Banner
 st.markdown("""
 <div class="hero-header">
     <div class="hero-title">⚡ Shafay Munir — Autonomous ATS Tailor</div>
@@ -428,15 +443,15 @@ st.markdown("""
 col1, col2 = st.columns([1.1, 1.9], gap="large")
 
 with col1:
-    st.subheader("⚙️ Pipeline Configuration")
+    st.markdown("### ⚙️ Pipeline Configuration")
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
     model_choice = st.text_input("Model Engine ID", value="gemini-2.0-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
     
     st.markdown("""
     <div class="context-panel">
-        <div style="color: #818CF8; font-weight: 700; margin-bottom: 0.4rem; font-size: 0.85rem;">PRESET CONTEXT LOADED</div>
-        <div style="font-size: 0.85rem; color: #CBD5E1; line-height: 1.6;">
+        <div class="context-panel-title">PRESET CONTEXT LOADED</div>
+        <div class="context-panel-body">
             • 📍 <b>Vilnius, Lithuania</b> (TRP Valid until 2029)<br>
             • 🎓 <b>ISM University MSc</b> & Bahria BSc<br>
             • 🚀 <b>AIO</b> ($17M Series A, 0 to 50 scale, 1M+ views)
@@ -445,7 +460,7 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    st.subheader("🎯 Target Job Description")
+    st.markdown("### 🎯 Target Job Description")
     job_desc = st.text_area(
         "Paste Job Description text here:",
         height=260,
