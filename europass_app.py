@@ -330,22 +330,37 @@ Output strictly structured markdown without preamble or code fencing:
 - English (Fluent / C1-C2)
 - Lithuanian (Basic / Learning)
 """
-    # Active endpoints avoiding deprecated models
-    models_to_try = [
-        custom_model_name.strip() if custom_model_name else "gemini-3.8-flash",
-        "gemini-3.8-flash",
+    # 1. API key ke accessible models live detect karein
+    live_supported = []
+    try:
+        for m in client.models.list():
+            methods = getattr(m, 'supported_generation_methods', []) or getattr(m, 'supported_actions', [])
+            m_name = m.name.replace("models/", "")
+            if not methods or "generateContent" in methods:
+                live_supported.append(m_name)
+    except Exception:
+        pass
+
+    # 2. Recommended priority order banayein
+    priority = [
+        custom_model_name.strip() if custom_model_name else "",
         "gemini-2.5-flash",
         "gemini-2.5-pro",
-        "gemini-1.5-flash"
+        "gemini-3.8-flash",
+        "gemini-flash-latest"
     ]
-    candidate_models = list(dict.fromkeys([m for m in models_to_try if m]))
+    priority.extend(live_supported)
+
+    # 3. Known deprecated / 404 models block karein
+    blocked = {"gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"}
+    candidate_models = [m for m in dict.fromkeys(priority) if m and m not in blocked]
 
     last_err = None
-    for m in candidate_models:
+    for model_name in candidate_models:
         for attempt in range(2):
             try:
                 response = client.models.generate_content(
-                    model=m,
+                    model=model_name,
                     contents=prompt
                 )
                 if response and response.text:
@@ -437,7 +452,7 @@ st.markdown("""
 <div class="hero-header">
     <div class="hero-title">⚡ Shafay Munir — Autonomous ATS Tailor</div>
     <div class="hero-desc">Real-time reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
-    <div class="status-chip">● ENGINE ACTIVE: MULTI-MODEL AUTO-HEALING PIPELINE</div>
+    <div class="status-chip">● ENGINE ACTIVE: DYNAMIC MODEL RESOLUTION & ATS AUTO-HEALING</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -446,7 +461,7 @@ col1, col2 = st.columns([1.1, 1.9], gap="large")
 with col1:
     st.markdown("### ⚙️ Pipeline Configuration")
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
-    model_choice = st.text_input("Model Engine ID", value="gemini-3.8-flash")
+    model_choice = st.text_input("Model Engine ID", value="gemini-2.5-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
     
     st.markdown("""
