@@ -6,6 +6,8 @@ from datetime import datetime
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 import streamlit as st
 from google import genai
 
@@ -107,20 +109,22 @@ st.markdown("""
         box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
     }
 
-    /* High Visibility Labels and Texts */
-    label, .stTextInput label, .stTextArea label, .stSelectbox label, .stRadio label, p, span, h1, h2, h3 {
+    /* ALL LABELS FORCED TO BRIGHT LIGHT COLOR */
+    label, .stTextInput label, .stTextArea label, .stSelectbox label, p, span, h1, h2, h3 {
         color: #FFFFFF !important;
         font-weight: 700 !important;
-        font-size: 0.98rem !important;
+        font-size: 1rem !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
 
+    /* Subheadings High Contrast */
     h3 {
         color: #F8FAFC !important;
         font-weight: 800 !important;
         letter-spacing: -0.01em;
     }
 
+    /* HIGH-CONTRAST INPUT BOXES */
     .stTextInput input, .stTextArea textarea {
         background-color: #0F172A !important;
         color: #FFFFFF !important;
@@ -138,6 +142,7 @@ st.markdown("""
         background-color: #0B1120 !important;
     }
 
+    /* BRIGHT PLACEHOLDERS */
     ::placeholder {
         color: #94A3B8 !important;
         opacity: 1 !important;
@@ -145,6 +150,7 @@ st.markdown("""
         font-size: 0.92rem !important;
     }
 
+    /* Selectbox dropdown fix */
     div[data-baseweb="select"] {
         background-color: #0F172A !important;
         border: 1.5px solid #475569 !important;
@@ -156,6 +162,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
+    /* Context Panel Card */
     .context-panel {
         background: rgba(15, 23, 42, 0.85);
         border: 1px solid rgba(147, 197, 253, 0.25);
@@ -179,6 +186,7 @@ st.markdown("""
         line-height: 1.7;
     }
 
+    /* Glowing Compile Button */
     .stButton > button {
         background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #38BDF8 100%) !important;
         color: #FFFFFF !important;
@@ -199,6 +207,7 @@ st.markdown("""
         box-shadow: 0 10px 32px rgba(56, 189, 248, 0.8) !important;
     }
 
+    /* Download File Button */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
         color: #FFFFFF !important;
@@ -280,43 +289,12 @@ KEY STRENGTHS:
 """
 }
 
-# 10 Major EU & Target Languages
-LANGUAGES_AVAILABLE = [
-    "English (Default)",
-    "Lithuanian (Lietuvių k.)",
-    "German (Deutsch)",
-    "Polish (Polski)",
-    "French (Français)",
-    "Dutch (Nederlands)",
-    "Latvian (Latviešu)",
-    "Estonian (Eesti)",
-    "Spanish (Español)",
-    "Italian (Italiano)"
-]
-
-def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name, target_lang, trans_scope):
+def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name):
     client = genai.Client(api_key=api_key)
-
-    lang_instructions = f"""
-LANGUAGE & LOCALIZATION REQUIREMENTS:
-- Target Output Language: {target_lang}
-- Translation Scope: {trans_scope}
-"""
-    if trans_scope == "Entire CV":
-        lang_instructions += f"""
-- Translate all section headers, summaries, experience bullet points, skills, and dates into {target_lang}.
-- Keep company names (AIO, Cretesol Technologies, United Sol), university names, and global software brand names in standard form.
-"""
-    else:  # Summary & Experience Bullets Only
-        lang_instructions += f"""
-- Keep section headers (PROFESSIONAL SUMMARY, WORK EXPERIENCE, EDUCATION, CORE SKILLS, TOOLS, LANGUAGES) and Job Titles in standard English.
-- Translate only the descriptive narrative sentences inside PROFESSIONAL SUMMARY and WORK EXPERIENCE bullet points into {target_lang}.
-- Keep technical tools, methodologies, metrics, and numbers unchanged.
-"""
-
+    
     prompt = f"""
-You are an expert European ATS Resume Writer and Recruiter specializing in the Baltic and EU tech markets.
-Your task is to tailor a clean, ATS-compliant, single-column Europass CV for candidate Shafay Munir based strictly on his master background and the target Job Description.
+You are an expert European ATS Resume Writer specializing in the Baltic/Lithuanian and EU job market.
+Your task is to tailor an authentic, ATS-compliant Europass layout CV for candidate Shafay Munir based strictly on his master background and the target Job Description.
 
 MASTER DATA:
 {PROFILES[profile_name]}
@@ -324,118 +302,191 @@ MASTER DATA:
 TARGET JOB DESCRIPTION:
 {job_desc}
 
-{lang_instructions}
-
 RULES & GUIDELINES:
-1. Tone & Culture: Factual, professional, metric-driven (for tech roles) or reliability-focused (for operations/services). No fluff.
-2. ATS Match: Extract critical keywords from the Job Description and seamlessly integrate them into achievements and skills.
-3. Truthfulness: Do not invent fake companies or fake degrees. Use the numbers and milestones provided (e.g. 50+ clients, 1.02M impressions, $17M Series A, 8-module spec).
-4. FORMAT:
-Output strictly structured markdown without preamble or code fencing:
+1. Tone & Culture: Factual, professional, metric-driven (for tech roles) or reliability-focused (for operations/services).
+2. Truthfulness: Strictly stick to the master background numbers (e.g. 50+ clients, 1.02M impressions, $17M Series A). Do not invent fake companies or credentials.
+3. CRITICAL EUROPASS FORMAT REQUIREMENT:
+   Every Experience and Education entry MUST be formatted with '## ' followed by: [Role/Degree] | [Company/University] [[Dates]]
+   Example:
+   ## AI SEO Specialist | AIO (Silicon Valley, CA) [Aug 2024 - Jul 2026]
+   - Bullet point achievement 1
+   - Bullet point achievement 2
+
+OUTPUT STRUCTURE (Strictly follow without preamble, conversational remarks, or code fences):
 
 # SHAFAY MUNIR
-[Target Job Title matching the JD] | Vilnius, Lithuania | +370 692 28 728 | shafaymunir890@gmail.com | linkedin.com/in/shafay-munir/
+[Target Job Title] | Vilnius, Lithuania | +370 692 28 728 | shafaymunir890@gmail.com | linkedin.com/in/shafay-munir/
 
 # PROFESSIONAL SUMMARY
-(3-4 lines targeted directly to the role, embedding key JD requirements)
+(3-4 impactful lines targeted to the JD embedding keywords)
 
 # WORK EXPERIENCE
-(Role, Company, Dates, Location, followed by 4-6 impact bullet points with action verbs and metrics)
+## [Job Title] | [Company, Location] [Start Date - End Date]
+- Impact bullet point 1
+- Impact bullet point 2
+- Impact bullet point 3
 
-# EDUCATION
-(Degree, Institution, Dates)
+# EDUCATION AND TRAINING
+## [Degree Title] | [University, Location] [Start Date - End Date]
+- Relevant focus / achievements
 
-# CORE SKILLS & EXPERTISE
-(Bulleted list of exact matching technical & operational skills)
+# DIGITAL & CORE SKILLS
+- Skill category 1: details
+- Skill category 2: details
 
-# TOOLS & PLATFORMS
-(Bulleted list of software and tools relevant to the JD)
+# TOOLS & TECHNOLOGIES
+- Tools list
 
-# LANGUAGES
-- English (Fluent / C1-C2)
-- Lithuanian (Basic / Learning)
+# LANGUAGE SKILLS
+- Mother tongue: Urdu
+- Other languages: English (Proficient / C1-C2), Lithuanian (Basic / A1)
 """
-    # 1. API key ke live models dynamically fetch karein
-    live_supported = []
-    try:
-        for m in client.models.list():
-            methods = getattr(m, 'supported_generation_methods', []) or getattr(m, 'supported_actions', [])
-            m_name = m.name.replace("models/", "")
-            if not methods or "generateContent" in methods:
-                live_supported.append(m_name)
-    except Exception:
-        pass
-
-    # 2. Recommended priority order
-    priority = [
-        custom_model_name.strip() if custom_model_name else "",
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-3.8-flash",
+    candidate_models = [
+        custom_model_name.strip(),
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
         "gemini-flash-latest"
     ]
-    priority.extend(live_supported)
-
-    # 3. Known deprecated models filter out karein
-    blocked = {"gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"}
-    candidate_models = [m for m in dict.fromkeys(priority) if m and m not in blocked]
+    candidate_models = [m for m in dict.fromkeys(candidate_models) if m]
 
     last_err = None
-    for model_name in candidate_models:
-        for attempt in range(2):
+    for m in candidate_models:
+        for _ in range(2):
             try:
                 response = client.models.generate_content(
-                    model=model_name,
+                    model=m,
                     contents=prompt
                 )
                 if response and response.text:
                     return response.text
             except Exception as err:
                 last_err = err
-                time.sleep(1.0)
+                time.sleep(1.2)
                 continue
 
     raise last_err
 
+def set_cell_border_none(cell):
+    """Europass table grid borders remove karne ke liye"""
+    tcPr = cell._element.get_or_add_tcPr()
+    tcBorders = OxmlElement('w:tcBorders')
+    for border_name in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
+        b = OxmlElement(f'w:{border_name}')
+        b.set(qn('w:val'), 'none')
+        tcBorders.append(b)
+    tcPr.append(tcBorders)
+
 def create_europass_docx(markdown_content):
     doc = Document()
+    
+    # Official Page Setup (A4 Margins standard for Europass)
     for s in doc.sections:
-        s.top_margin = Inches(0.6)
-        s.bottom_margin = Inches(0.6)
-        s.left_margin = Inches(0.75)
-        s.right_margin = Inches(0.75)
+        s.top_margin = Inches(0.55)
+        s.bottom_margin = Inches(0.55)
+        s.left_margin = Inches(0.7)
+        s.right_margin = Inches(0.7)
 
-    COLOR_BLUE = RGBColor(0, 51, 153)
-    COLOR_BODY = RGBColor(40, 40, 40)
+    COLOR_PRIMARY_BLUE = RGBColor(14, 65, 148)    # Europass Official Navy Blue (#0E4194)
+    COLOR_BODY = RGBColor(45, 55, 72)             # Deep Charcoal
+    COLOR_MUTED = RGBColor(100, 116, 139)         # Timeline Grey
 
     lines = markdown_content.strip().split("\n")
-    for raw_line in lines:
-        line = raw_line.strip()
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
         if not line:
+            i += 1
             continue
 
+        # MAIN SECTION HEADINGS (e.g. # WORK EXPERIENCE, # EDUCATION AND TRAINING)
         if line.startswith("# "):
             title = line.replace("# ", "").strip()
             p = doc.add_paragraph()
-            p.paragraph_format.space_before = Pt(10)
-            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.space_before = Pt(14)
+            p.paragraph_format.space_after = Pt(4)
             run = p.add_run(title.upper())
             run.font.name = "Arial"
             run.font.size = Pt(11)
             run.font.bold = True
-            run.font.color.rgb = COLOR_BLUE
+            run.font.color.rgb = COLOR_PRIMARY_BLUE
+            
+            # Europass bottom accent divider line under headings
+            pBdr = OxmlElement('w:pBdr')
+            bottom = OxmlElement('w:bottom')
+            bottom.set(qn('w:val'), 'single')
+            bottom.set(qn('w:sz'), '6')
+            bottom.set(qn('w:space'), '1')
+            bottom.set(qn('w:color'), '0E4194')
+            pBdr.append(bottom)
+            p._p.get_or_add_pPr().append(pBdr)
+            i += 1
 
+        # EXPERIENCE / EDUCATION 2-COLUMN TIMELINE BLOCKS (Official Europass Layout)
         elif line.startswith("## "):
-            subtitle = line.replace("## ", "").strip()
-            p = doc.add_paragraph()
-            p.paragraph_format.space_before = Pt(6)
-            p.paragraph_format.space_after = Pt(2)
-            run = p.add_run(subtitle)
-            run.font.name = "Arial"
-            run.font.size = Pt(10)
-            run.font.bold = True
-            run.font.color.rgb = COLOR_BODY
+            header_text = line.replace("## ", "").strip()
+            
+            date_part = ""
+            main_part = header_text
+            
+            # Extract bracketed dates [Aug 2024 - Jul 2026]
+            date_match = re.search(r'\[(.*?)\]', header_text)
+            if date_match:
+                date_part = date_match.group(1)
+                main_part = header_text.replace(f"[{date_part}]", "").strip(" | -")
+            
+            # Europass 2-Column Table Grid
+            table = doc.add_table(rows=1, cols=2)
+            table.autofit = False
+            
+            cell_left = table.cell(0, 0)
+            cell_right = table.cell(0, 1)
+            cell_left.width = Inches(1.8)   # Left Timeline
+            cell_right.width = Inches(5.2)  # Right Details
+            
+            set_cell_border_none(cell_left)
+            set_cell_border_none(cell_right)
 
+            # Left Cell: Timeline / Period
+            p_date = cell_left.paragraphs[0]
+            p_date.paragraph_format.space_before = Pt(2)
+            p_date.paragraph_format.space_after = Pt(2)
+            r_date = p_date.add_run(date_part)
+            r_date.font.name = "Arial"
+            r_date.font.size = Pt(9)
+            r_date.font.bold = True
+            r_date.font.color.rgb = COLOR_MUTED
+
+            # Right Cell: Role, Company & Location
+            p_role = cell_right.paragraphs[0]
+            p_role.paragraph_format.space_before = Pt(2)
+            p_role.paragraph_format.space_after = Pt(3)
+            r_role = p_role.add_run(main_part)
+            r_role.font.name = "Arial"
+            r_role.font.size = Pt(10)
+            r_role.font.bold = True
+            r_role.font.color.rgb = COLOR_PRIMARY_BLUE
+
+            # Subsequent bullet points ko right cell ke andar render karein
+            i += 1
+            while i < len(lines) and (lines[i].strip().startswith("- ") or lines[i].strip().startswith("* ")):
+                b_text = lines[i].strip()[2:].strip()
+                p_bullet = cell_right.add_paragraph(style='List Bullet')
+                p_bullet.paragraph_format.space_before = Pt(1)
+                p_bullet.paragraph_format.space_after = Pt(1.5)
+                
+                parts = re.split(r'(\*\*.*?\*\*)', b_text)
+                for part in parts:
+                    if part.startswith("**") and part.endswith("**"):
+                        r = p_bullet.add_run(part[2:-2])
+                        r.bold = True
+                    else:
+                        r = p_bullet.add_run(part)
+                    r.font.name = "Arial"
+                    r.font.size = Pt(9.5)
+                    r.font.color.rgb = COLOR_BODY
+                i += 1
+
+        # REGULAR BULLET POINTS (Skills, Languages, Tools)
         elif line.startswith("- ") or line.startswith("* "):
             bullet_text = line[2:].strip()
             p = doc.add_paragraph(style='List Bullet')
@@ -452,6 +503,9 @@ def create_europass_docx(markdown_content):
                 r.font.name = "Arial"
                 r.font.size = Pt(9.5)
                 r.font.color.rgb = COLOR_BODY
+            i += 1
+
+        # REGULAR PARAGRAPHS (Header Info, Summary)
         else:
             p = doc.add_paragraph()
             p.paragraph_format.space_before = Pt(1)
@@ -466,6 +520,7 @@ def create_europass_docx(markdown_content):
                 r.font.name = "Arial"
                 r.font.size = Pt(9.5)
                 r.font.color.rgb = COLOR_BODY
+            i += 1
 
     bio = io.BytesIO()
     doc.save(bio)
@@ -476,8 +531,8 @@ def create_europass_docx(markdown_content):
 st.markdown("""
 <div class="hero-header">
     <div class="hero-title">⚡ Shafay Munir — Autonomous ATS Tailor</div>
-    <div class="hero-desc">Multi-lingual reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
-    <div class="status-chip">● ENGINE ACTIVE: MULTI-LANGUAGE ATS LOCALIZER & AUTO-HEALING</div>
+    <div class="hero-desc">Real-time reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
+    <div class="status-chip">● ENGINE ACTIVE: GEMINI 2.0 FLASH / AUTO-HEALING</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -486,18 +541,8 @@ col1, col2 = st.columns([1.1, 1.9], gap="large")
 with col1:
     st.markdown("### ⚙️ Pipeline Configuration")
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
-    model_choice = st.text_input("Model Engine ID", value="gemini-2.5-flash")
+    model_choice = st.text_input("Model Engine ID", value="gemini-2.0-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
-    
-    st.markdown("---")
-    st.markdown("### 🌐 Language & Localization")
-    target_language = st.selectbox("Target Output Language", LANGUAGES_AVAILABLE, index=0)
-    translation_scope = st.radio(
-        "Translation Scope",
-        ["Entire CV", "Summary & Experience Bullets Only"],
-        index=0,
-        help="'Entire CV' translates headers and titles; 'Summary & Experience' preserves English technical terms and headers."
-    )
     
     st.markdown("""
     <div class="context-panel">
@@ -526,32 +571,23 @@ if generate_trigger:
     elif not job_desc.strip():
         st.error("Job description paste karna zaroori hai.")
     else:
-        with st.status(f"⚡ Localizing & Compiling CV ({target_language})...", expanded=True) as status:
+        with st.status("⚡ Initializing Autonomous ATS Pipeline...", expanded=True) as status:
             st.write("🔍 Parsing Job Description intent and high-frequency ATS tokens...")
             time.sleep(0.3)
             st.write(f"🧠 Synthesizing Master Background for track: **{target_track}**...")
-            st.write(f"🌍 Applying language localization: **{target_language}** ({translation_scope})...")
             try:
-                cv_markdown = generate_tailored_cv(
-                    target_track, 
-                    job_desc, 
-                    api_key, 
-                    model_choice, 
-                    target_language, 
-                    translation_scope
-                )
+                cv_markdown = generate_tailored_cv(target_track, job_desc, api_key, model_choice)
                 st.write("📄 Structuring Europass Word XML document...")
                 docx_file = create_europass_docx(cv_markdown)
                 status.update(label="✅ Compilation Complete!", state="complete", expanded=False)
                 
                 clean_name = target_track.split()[0]
-                lang_code = target_language.split()[0][:3].upper()
                 
                 st.success("✔ Document compiled successfully!")
                 st.download_button(
-                    label=f"📥 Download Tailored CV ({clean_name}_{lang_code}.docx)",
+                    label=f"📥 Download Tailored CV ({clean_name}.docx)",
                     data=docx_file,
-                    file_name=f"Shafay_Munir_CV_{clean_name}_{lang_code}.docx",
+                    file_name=f"Shafay_Munir_CV_{clean_name}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
