@@ -110,7 +110,7 @@ st.markdown("""
     }
 
     /* ALL LABELS FORCED TO BRIGHT LIGHT COLOR */
-    label, .stTextInput label, .stTextArea label, .stSelectbox label, p, span, h1, h2, h3 {
+    label, .stTextInput label, .stTextArea label, .stSelectbox label, .stMultiSelect label, p, span, h1, h2, h3 {
         color: #FFFFFF !important;
         font-weight: 700 !important;
         font-size: 1rem !important;
@@ -150,7 +150,7 @@ st.markdown("""
         font-size: 0.92rem !important;
     }
 
-    /* Selectbox dropdown fix */
+    /* Selectbox and Multiselect dropdown fix */
     div[data-baseweb="select"] {
         background-color: #0F172A !important;
         border: 1.5px solid #475569 !important;
@@ -289,12 +289,17 @@ KEY STRENGTHS:
 """
 }
 
-def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name):
+def generate_tailored_cv(profile_name, job_desc, api_key, custom_model_name, output_language="English", sections_scope="Entire CV"):
     client = genai.Client(api_key=api_key)
     
     prompt = f"""
 You are an expert European ATS Resume Writer specializing in the Baltic/Lithuanian and EU job market.
 Your task is to tailor an authentic, ATS-compliant Europass layout CV for candidate Shafay Munir based strictly on his master background and the target Job Description.
+
+LANGUAGE INSTRUCTION:
+- Selected Language: {output_language}
+- Selected Scope of Translation: {sections_scope}
+(If scope is 'Entire CV', translate all headings, text, bullets, and titles into {output_language}. If scope specifies certain sections like 'Summary Only' or 'Experience Only', translate ONLY those chosen sections into {output_language} while keeping the rest in clear English. Keep company names, software names, and candidate details intact.)
 
 MASTER DATA:
 {PROFILES[profile_name]}
@@ -342,16 +347,16 @@ OUTPUT STRUCTURE (Strictly follow without preamble, conversational remarks, or c
 - Other languages: English (Proficient / C1-C2), Lithuanian (Basic / A1)
 """
     candidate_models = [
-        custom_model_name.strip(),
-        "gemini-2.0-flash",
+        custom_model_name.strip() if custom_model_name else "",
         "gemini-1.5-flash",
+        "gemini-2.0-flash",
         "gemini-flash-latest"
     ]
     candidate_models = [m for m in dict.fromkeys(candidate_models) if m]
 
     last_err = None
     for m in candidate_models:
-        for _ in range(2):
+        for attempt in range(2):
             try:
                 response = client.models.generate_content(
                     model=m,
@@ -361,7 +366,7 @@ OUTPUT STRUCTURE (Strictly follow without preamble, conversational remarks, or c
                     return response.text
             except Exception as err:
                 last_err = err
-                time.sleep(1.2)
+                time.sleep(1.5 * (attempt + 1))
                 continue
 
     raise last_err
@@ -532,7 +537,7 @@ st.markdown("""
 <div class="hero-header">
     <div class="hero-title">⚡ Shafay Munir — Autonomous ATS Tailor</div>
     <div class="hero-desc">Real-time reverse-chronological Europass CV generation calibrated for the Baltic & EU market.</div>
-    <div class="status-chip">● ENGINE ACTIVE: GEMINI 2.0 FLASH / AUTO-HEALING</div>
+    <div class="status-chip">● ENGINE ACTIVE: GEMINI 1.5 FLASH / MULTI-LANG READY</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -541,8 +546,36 @@ col1, col2 = st.columns([1.1, 1.9], gap="large")
 with col1:
     st.markdown("### ⚙️ Pipeline Configuration")
     api_key = st.text_input("Gemini API Key", type="password", help="Personal AI Studio API Key")
-    model_choice = st.text_input("Model Engine ID", value="gemini-2.0-flash")
+    model_choice = st.text_input("Model Engine ID", value="gemini-1.5-flash")
     target_track = st.selectbox("Select Target Track", list(PROFILES.keys()))
+    
+    # 12+ European & Baltic Languages Support
+    LANGUAGES = [
+        "English", 
+        "Lithuanian (Lietuvių)", 
+        "German (Deutsch)", 
+        "French (Français)", 
+        "Polish (Polski)",
+        "Spanish (Español)",
+        "Italian (Italiano)",
+        "Dutch (Nederlands)",
+        "Swedish (Svenska)",
+        "Danish (Dansk)",
+        "Norwegian (Norsk)",
+        "Finnish (Suomi)",
+        "Latvian (Latviešu)",
+        "Estonian (Eesti)"
+    ]
+    target_language = st.selectbox("🌐 Target CV Language", LANGUAGES)
+    
+    # Selective Section Translation Control
+    scope_options = [
+        "Entire CV (All Sections)",
+        "Professional Summary Only (Keep Rest in English)",
+        "Work Experience Bullets Only",
+        "Summary & Experience Only (Keep Skills/Education English)"
+    ]
+    sections_scope = st.selectbox("🎯 Translation Scope", scope_options)
     
     st.markdown("""
     <div class="context-panel">
@@ -572,22 +605,31 @@ if generate_trigger:
         st.error("Job description paste karna zaroori hai.")
     else:
         with st.status("⚡ Initializing Autonomous ATS Pipeline...", expanded=True) as status:
+            st.write(f"🌐 Target Language: **{target_language}** | Scope: **{sections_scope}**")
             st.write("🔍 Parsing Job Description intent and high-frequency ATS tokens...")
             time.sleep(0.3)
             st.write(f"🧠 Synthesizing Master Background for track: **{target_track}**...")
             try:
-                cv_markdown = generate_tailored_cv(target_track, job_desc, api_key, model_choice)
+                cv_markdown = generate_tailored_cv(
+                    profile_name=target_track, 
+                    job_desc=job_desc, 
+                    api_key=api_key, 
+                    custom_model_name=model_choice,
+                    output_language=target_language,
+                    sections_scope=sections_scope
+                )
                 st.write("📄 Structuring Europass Word XML document...")
                 docx_file = create_europass_docx(cv_markdown)
                 status.update(label="✅ Compilation Complete!", state="complete", expanded=False)
                 
                 clean_name = target_track.split()[0]
+                lang_code = target_language.split()[0]
                 
                 st.success("✔ Document compiled successfully!")
                 st.download_button(
-                    label=f"📥 Download Tailored CV ({clean_name}.docx)",
+                    label=f"📥 Download Tailored CV ({clean_name}_{lang_code}.docx)",
                     data=docx_file,
-                    file_name=f"Shafay_Munir_CV_{clean_name}.docx",
+                    file_name=f"Shafay_Munir_CV_{clean_name}_{lang_code}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
